@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -69,8 +69,9 @@
     </div>
 
 <script>
-    const backendUrl = "https://24976535-615c-4c49-8b64-1c3a77c67211-00-1fp62i9n295va.sisko.replit.dev/"; // Replace with your backend URL
+    const backendUrl = "https://24976535-615c-4c49-8b64-1c3a77c67211-00-1fp62i9n295va.sisko.replit.dev"; // Your backend URL
 
+    // Ask AI a question
     async function askAIQuestion() {
         try {
             const response = await fetch(`${backendUrl}/generate`, {
@@ -89,21 +90,27 @@
         }
     }
 
+    // Process user's answer
     async function processAnswer(type) {
-        // Example: Send the answer type to backend if needed
-        const feedback = type === 'positive' ? 'Good' : type === 'neutral' ? 'Okay' : 'Bad';
+        // Define how each type affects the character
+        const feedback = type === 'positive' ? 'optimistic' :
+                         type === 'neutral' ? 'balanced' :
+                         'pessimistic';
 
         try {
             const response = await fetch(`${backendUrl}/generate`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    prompt: `Write a diary entry for a character who received ${feedback} advice.`
+                    prompt: `Write a reflective diary entry for a teenager who has received ${feedback} advice.`
                 })
             });
 
             const data = await response.json();
-            console.log("Diary Entry:", data.response); // Use this to update the diary in your game
+            console.log("Diary Entry:", data.response);
+
+            // Update chat with the next AI-generated question
+            askAIQuestion();
         } catch (error) {
             console.error("Error processing answer:", error);
         }
