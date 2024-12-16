@@ -36,7 +36,7 @@
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
 
-    .character-info, .chat-section, .inventory {
+    .character-info, .chat-section, .inventory, .career-section {
       margin-top: 20px;
     }
 
@@ -47,6 +47,26 @@
 
     .info-item {
       margin-bottom: 10px;
+    }
+
+    .stat-bar {
+      height: 20px;
+      background: #ddd;
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+      margin: 5px 0;
+    }
+
+    .stat-bar span {
+      height: 100%;
+      display: block;
+      background: #007bff;
+      text-align: center;
+      line-height: 20px;
+      color: white;
+      font-size: 12px;
+      position: absolute;
     }
 
     .chat-section {
@@ -87,7 +107,7 @@
       background: #0056b3;
     }
 
-    .diary, .inventory {
+    .diary, .inventory, .career-section {
       margin-top: 20px;
       padding: 10px;
       border: 1px solid #ddd;
@@ -135,11 +155,16 @@
         <h2>Character Information</h2>
         <div class="info-item" id="character-name"></div>
         <div class="info-item" id="age">Age: 0</div>
-        <div class="info-item">Happiness: <span id="happiness">50</span></div>
-        <div class="info-item">Intelligence: <span id="intelligence">50</span></div>
-        <div class="info-item">Health: <span id="health">100</span></div>
-        <div class="info-item">Wealth: <span id="wealth">50</span></div>
+        <div class="info-item">Happiness: <span id="happiness-bar" class="stat-bar"><span></span></span></div>
+        <div class="info-item">Intelligence: <span id="intelligence-bar" class="stat-bar"><span></span></span></div>
+        <div class="info-item">Health: <span id="health-bar" class="stat-bar"><span></span></span></div>
+        <div class="info-item">Wealth: <span id="wealth-bar" class="stat-bar"><span></span></span></div>
         <div class="info-item">Achievements: <span id="achievements">None</span></div>
+      </div>
+
+      <div class="career-section">
+        <h2>Career</h2>
+        <p id="career">No career yet. Make choices to build your career.</p>
       </div>
 
       <div class="inventory">
@@ -164,30 +189,35 @@
   </div>
 
 <script>
+  // Initialize Character
   let character = {
+    name: "",
     age: 0,
     happiness: 50,
     intelligence: 50,
     health: 100,
     wealth: 50,
+    career: "",
     inventory: [],
     achievements: [],
     diary: [],
   };
 
   const chatMessages = [
-    "What is your biggest dream as a child?",
-    "You made a friend at school. What kind of friendship is it?",
-    "Do you like to spend your time studying or playing?",
-    "You got your first job offer. Do you accept it?",
-    "What is your biggest regret in life so far?",
+    "What is your dream career?",
+    "You have an opportunity to take a risk. Do you take it?",
+    "A family member needs help. How do you respond?",
+    "You face a financial crisis. What will you do?",
+    "What is the most important lesson you've learned?",
   ];
 
   const milestones = [
-    { age: 18, event: "You graduated high school! (+10 Intelligence)", effects: { intelligence: 10 } },
-    { age: 30, event: "You got married! (+10 Happiness)", effects: { happiness: 10 } },
-    { age: 65, event: "You retired! (+20 Happiness)", effects: { happiness: 20 } },
+    { age: 18, event: "Graduated high school!", effects: { intelligence: 10 } },
+    { age: 30, event: "Got married!", effects: { happiness: 15 } },
+    { age: 65, event: "Retired!", effects: { happiness: 20 } },
   ];
+
+  const careers = ["Artist", "Scientist", "Entrepreneur", "Athlete"];
 
   function startCharacterCreation() {
     document.getElementById("intro-screen").classList.remove("active");
@@ -196,6 +226,7 @@
 
   function startGame() {
     const name = document.getElementById("name").value || "Unnamed Hero";
+    character.name = name;
     character.happiness = parseInt(document.getElementById("start-happiness").value);
     character.intelligence = parseInt(document.getElementById("start-intelligence").value);
     character.health = parseInt(document.getElementById("start-health").value);
@@ -204,15 +235,16 @@
     document.getElementById("character-creation").classList.remove("active");
     document.getElementById("main-screen").classList.add("active");
     document.getElementById("character-name").innerText = `Name: ${name}`;
-
+    updateStatBars();
     setInterval(updateAge, 10000); // 10 seconds = 1 year
-    sendMessage("Welcome! Let's start your journey.");
+    sendMessage("Welcome to life! Make the best choices you can.");
   }
 
   function updateAge() {
     character.age++;
     document.getElementById("age").innerText = `Age: ${character.age}`;
     checkMilestones();
+    if (character.age === 18) pickCareer();
     sendMessage(chatMessages[character.age % chatMessages.length]);
   }
 
@@ -222,8 +254,19 @@
       sendMessage(`Milestone: ${milestone.event}`);
       for (const stat in milestone.effects) {
         character[stat] += milestone.effects[stat];
-        document.getElementById(stat).innerText = character[stat];
       }
+      updateStatBars();
+    }
+  }
+
+  function pickCareer() {
+    const career = prompt("Pick a career: Artist, Scientist, Entrepreneur, Athlete");
+    if (careers.includes(career)) {
+      character.career = career;
+      document.getElementById("career").innerText = `Career: ${career}`;
+      sendMessage(`You chose the path of a ${career}.`);
+    } else {
+      sendMessage("You didn't pick a valid career. Try again at age 19.");
     }
   }
 
@@ -237,6 +280,13 @@
   function addDiaryEntry(entry) {
     character.diary.push(`Age ${character.age}: ${entry}`);
     document.getElementById("diary").innerText = character.diary.join("\n");
+  }
+
+  function updateStatBars() {
+    document.getElementById("happiness-bar").firstElementChild.style.width = `${character.happiness}%`;
+    document.getElementById("intelligence-bar").firstElementChild.style.width = `${character.intelligence}%`;
+    document.getElementById("health-bar").firstElementChild.style.width = `${character.health}%`;
+    document.getElementById("wealth-bar").firstElementChild.style.width = `${character.wealth}%`;
   }
 
   function sendMessage(message) {
