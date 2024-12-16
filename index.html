@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Life Simulation Game</title>
+  <title>Psychology Life Simulator</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -19,11 +19,11 @@
       margin-top: 10px;
     }
 
-    .intro-screen, .main-screen, .character-creation {
+    .intro-screen, .main-screen {
       display: none;
     }
 
-    .intro-screen.active, .main-screen.active, .character-creation.active {
+    .intro-screen.active, .main-screen.active {
       display: block;
     }
 
@@ -36,7 +36,7 @@
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
 
-    .character-info, .chat-section, .inventory, .career-section {
+    .character-info, .chat-section, .diary {
       margin-top: 20px;
     }
 
@@ -47,26 +47,6 @@
 
     .info-item {
       margin-bottom: 10px;
-    }
-
-    .stat-bar {
-      height: 20px;
-      background: #ddd;
-      border-radius: 10px;
-      overflow: hidden;
-      position: relative;
-      margin: 5px 0;
-    }
-
-    .stat-bar span {
-      height: 100%;
-      display: block;
-      background: #007bff;
-      text-align: center;
-      line-height: 20px;
-      color: white;
-      font-size: 12px;
-      position: absolute;
     }
 
     .chat-section {
@@ -82,41 +62,32 @@
       background: #f9f9f9;
     }
 
-    .input-container {
+    .buttons-container {
       display: flex;
+      gap: 10px;
       margin-top: 10px;
     }
 
-    .input-container input {
-      flex: 1;
+    button {
       padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-    }
-
-    .input-container button {
-      padding: 10px 20px;
       border: none;
       background: #007bff;
       color: white;
       border-radius: 5px;
       cursor: pointer;
+      flex: 1;
     }
 
-    .input-container button:hover {
+    button:hover {
       background: #0056b3;
     }
 
-    .diary, .inventory, .career-section {
+    .diary {
       margin-top: 20px;
       padding: 10px;
       border: 1px solid #ddd;
       border-radius: 10px;
       background: #f9f9f9;
-    }
-
-    .inventory-item {
-      margin: 5px 0;
     }
   </style>
 </head>
@@ -124,66 +95,39 @@
   <!-- Intro Screen -->
   <div class="intro-screen active" id="intro-screen">
     <div class="container">
-      <h1>Welcome to Life Simulation Game</h1>
-      <p>Embark on a journey through a lifetime of choices. Your decisions will shape the character's destiny.</p>
-      <button onclick="startCharacterCreation()">Start Game</button>
-    </div>
-  </div>
-
-  <!-- Character Creation Screen -->
-  <div class="character-creation" id="character-creation">
-    <div class="container">
-      <h1>Create Your Character</h1>
-      <label for="name">Name:</label>
-      <input type="text" id="name" placeholder="Enter character's name">
-      <p>Select your starting stats:</p>
-      <div>
-        Happiness: <input type="number" id="start-happiness" value="50"> <br>
-        Intelligence: <input type="number" id="start-intelligence" value="50"> <br>
-        Health: <input type="number" id="start-health" value="100"> <br>
-        Wealth: <input type="number" id="start-wealth" value="50">
-      </div>
-      <button onclick="startGame()">Start Life</button>
+      <h1>Psychology Life Simulator</h1>
+      <p>Experience how your advice shapes a character's life through psychological interactions.</p>
+      <button onclick="startGame()">Start Game</button>
     </div>
   </div>
 
   <!-- Main Screen -->
   <div class="main-screen" id="main-screen">
     <div class="container">
-      <h1>Life Simulation Game</h1>
+      <h1>Life Simulation</h1>
       <div class="character-info">
         <h2>Character Information</h2>
-        <div class="info-item" id="character-name"></div>
+        <div class="info-item" id="personality"></div>
         <div class="info-item" id="age">Age: 0</div>
-        <div class="info-item">Happiness: <span id="happiness-bar" class="stat-bar"><span></span></span></div>
-        <div class="info-item">Intelligence: <span id="intelligence-bar" class="stat-bar"><span></span></span></div>
-        <div class="info-item">Health: <span id="health-bar" class="stat-bar"><span></span></span></div>
-        <div class="info-item">Wealth: <span id="wealth-bar" class="stat-bar"><span></span></span></div>
-        <div class="info-item">Achievements: <span id="achievements">None</span></div>
-      </div>
-
-      <div class="career-section">
-        <h2>Career</h2>
-        <p id="career">No career yet. Make choices to build your career.</p>
-      </div>
-
-      <div class="inventory">
-        <h2>Inventory</h2>
-        <div id="inventory-list">No items yet.</div>
+        <div class="info-item">Happiness: <span id="happiness">50</span></div>
+        <div class="info-item">Intelligence: <span id="intelligence">0</span></div>
+        <div class="info-item">Health: <span id="health"></span></div>
+        <div class="info-item">Wealth: <span id="wealth">0</span></div>
       </div>
 
       <div class="chat-section">
         <h2>Chat</h2>
-        <div id="chat"></div>
-        <div class="input-container">
-          <input type="text" id="user-input" placeholder="Your response...">
-          <button onclick="processInput()">Send</button>
+        <div id="chat">The character will ask you for advice.</div>
+        <div class="buttons-container">
+          <button onclick="processAnswer('positive')">Positive</button>
+          <button onclick="processAnswer('neutral')">Neutral</button>
+          <button onclick="processAnswer('negative')">Negative</button>
         </div>
       </div>
 
       <div class="diary">
         <h2>Diary</h2>
-        <p id="diary">The diary will record significant moments from the character's life.</p>
+        <p id="diary">Diary entries will appear here.</p>
       </div>
     </div>
   </div>
@@ -191,110 +135,116 @@
 <script>
   // Initialize Character
   let character = {
-    name: "",
     age: 0,
     happiness: 50,
-    intelligence: 50,
-    health: 100,
-    wealth: 50,
-    career: "",
-    inventory: [],
-    achievements: [],
+    intelligence: 0,
+    health: Math.floor(Math.random() * 21) + 80, // Random from 80-100
+    wealth: 0,
+    personality: "",
     diary: [],
   };
 
-  const chatMessages = [
-    "What is your dream career?",
-    "You have an opportunity to take a risk. Do you take it?",
-    "A family member needs help. How do you respond?",
-    "You face a financial crisis. What will you do?",
-    "What is the most important lesson you've learned?",
+  const personalityTypes = [
+    "INTJ", "INTP", "ENTJ", "ENTP", 
+    "INFJ", "INFP", "ENFJ", "ENFP", 
+    "ISTJ", "ISFJ", "ESTJ", "ESFJ", 
+    "ISTP", "ISFP", "ESTP", "ESFP"
   ];
 
-  const milestones = [
-    { age: 18, event: "Graduated high school!", effects: { intelligence: 10 } },
-    { age: 30, event: "Got married!", effects: { happiness: 15 } },
-    { age: 65, event: "Retired!", effects: { happiness: 20 } },
-  ];
+  const personalityDescriptions = {
+    "INTJ": "Strategic and ambitious thinker.",
+    "ENTP": "Curious and energetic debater.",
+    // Add all 16 types here with descriptions
+  };
 
-  const careers = ["Artist", "Scientist", "Entrepreneur", "Athlete"];
+  const chatQuestions = {
+    child: [
+      "Your child is throwing a tantrum. How do you react?",
+      "Your child is struggling in school. What advice do you give?",
+      "Your child wants to quit piano lessons. Do you let them?"
+    ],
+    teen: [
+      "Your teenager wants to skip college. How do you respond?",
+      "Your teen is hanging out with a bad crowd. What advice do you give?",
+      "Your teenager is feeling insecure. How do you help?"
+    ],
+    adult: [
+      "Your character is considering a career change. What advice do you give?",
+      "Your character is struggling with anxiety. What do you recommend?",
+      "Your character has financial trouble. What advice do you offer?"
+    ]
+  };
 
-  function startCharacterCreation() {
-    document.getElementById("intro-screen").classList.remove("active");
-    document.getElementById("character-creation").classList.add("active");
-  }
-
+  // Start Game
   function startGame() {
-    const name = document.getElementById("name").value || "Unnamed Hero";
-    character.name = name;
-    character.happiness = parseInt(document.getElementById("start-happiness").value);
-    character.intelligence = parseInt(document.getElementById("start-intelligence").value);
-    character.health = parseInt(document.getElementById("start-health").value);
-    character.wealth = parseInt(document.getElementById("start-wealth").value);
+    // Assign a random personality
+    character.personality = personalityTypes[Math.floor(Math.random() * personalityTypes.length)];
+    const personalityDesc = personalityDescriptions[character.personality] || "Unique personality type.";
 
-    document.getElementById("character-creation").classList.remove("active");
+    // Display initial stats
+    document.getElementById("intro-screen").classList.remove("active");
     document.getElementById("main-screen").classList.add("active");
-    document.getElementById("character-name").innerText = `Name: ${name}`;
-    updateStatBars();
+    document.getElementById("personality").innerText = `Personality: ${character.personality} - ${personalityDesc}`;
+    document.getElementById("health").innerText = character.health;
+
+    // Start life progression
     setInterval(updateAge, 10000); // 10 seconds = 1 year
-    sendMessage("Welcome to life! Make the best choices you can.");
+    askQuestion();
   }
 
+  // Update Age
   function updateAge() {
     character.age++;
     document.getElementById("age").innerText = `Age: ${character.age}`;
-    checkMilestones();
-    if (character.age === 18) pickCareer();
-    sendMessage(chatMessages[character.age % chatMessages.length]);
+    askQuestion();
   }
 
-  function checkMilestones() {
-    const milestone = milestones.find((m) => m.age === character.age);
-    if (milestone) {
-      sendMessage(`Milestone: ${milestone.event}`);
-      for (const stat in milestone.effects) {
-        character[stat] += milestone.effects[stat];
-      }
-      updateStatBars();
-    }
-  }
-
-  function pickCareer() {
-    const career = prompt("Pick a career: Artist, Scientist, Entrepreneur, Athlete");
-    if (careers.includes(career)) {
-      character.career = career;
-      document.getElementById("career").innerText = `Career: ${career}`;
-      sendMessage(`You chose the path of a ${career}.`);
+  // Ask Question
+  function askQuestion() {
+    let questionPool = [];
+    if (character.age < 18) {
+      questionPool = chatQuestions.child;
+    } else if (character.age < 30) {
+      questionPool = chatQuestions.teen;
     } else {
-      sendMessage("You didn't pick a valid career. Try again at age 19.");
+      questionPool = chatQuestions.adult;
     }
+    const question = questionPool[Math.floor(Math.random() * questionPool.length)];
+    document.getElementById("chat").innerText = question;
   }
 
-  function processInput() {
-    const input = document.getElementById("user-input").value;
-    if (!input) return;
-    addDiaryEntry(input);
-    document.getElementById("user-input").value = "";
+  // Process Answer
+  function processAnswer(type) {
+    if (type === "positive") {
+      character.happiness += 5;
+      character.intelligence += 3;
+    } else if (type === "neutral") {
+      character.happiness += 2;
+    } else if (type === "negative") {
+      character.happiness -= 5;
+      character.health -= 3;
+    }
+    updateStats();
+    addDiaryEntry(type);
   }
 
-  function addDiaryEntry(entry) {
-    character.diary.push(`Age ${character.age}: ${entry}`);
+  // Update Stats
+  function updateStats() {
+    document.getElementById("happiness").innerText = character.happiness;
+    document.getElementById("intelligence").innerText = character.intelligence;
+    document.getElementById("health").innerText = character.health;
+  }
+
+  // Add Diary Entry
+  function addDiaryEntry(answerType) {
+    const emotions = {
+      positive: "felt uplifted and inspired.",
+      neutral: "remained indifferent.",
+      negative: "felt hurt and anxious."
+    };
+    const diaryEntry = `At age ${character.age}, the character ${emotions[answerType]}`;
+    character.diary.push(diaryEntry);
     document.getElementById("diary").innerText = character.diary.join("\n");
-  }
-
-  function updateStatBars() {
-    document.getElementById("happiness-bar").firstElementChild.style.width = `${character.happiness}%`;
-    document.getElementById("intelligence-bar").firstElementChild.style.width = `${character.intelligence}%`;
-    document.getElementById("health-bar").firstElementChild.style.width = `${character.health}%`;
-    document.getElementById("wealth-bar").firstElementChild.style.width = `${character.wealth}%`;
-  }
-
-  function sendMessage(message) {
-    const chat = document.getElementById("chat");
-    const messageElement = document.createElement("div");
-    messageElement.innerText = message;
-    chat.appendChild(messageElement);
-    chat.scrollTop = chat.scrollHeight;
   }
 </script>
 </body>
