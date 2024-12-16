@@ -1,9 +1,61 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>My Mini App</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Life Simulation Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      padding: 0;
+      background: #f4f4f9;
+    }
+    h1 {
+      text-align: center;
+    }
+    .game-container {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    button {
+      display: block;
+      margin: 10px 0;
+      padding: 10px;
+      width: 100%;
+      border: none;
+      background: #007bff;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+  </style>
 </head>
 <body>
-    <h1>Hello, World!</h1>
+  <h1>Life Simulation Game</h1>
+  <div class="game-container">
+    <p id="story">Welcome to your new life! You are a child. What do you want to do?</p>
+    <button onclick="choosePath('play')">Play outside</button>
+    <button onclick="choosePath('study')">Study hard</button>
+  </div>
+
+  <script>
+    const storyElement = document.getElementById('story');
+
+    function choosePath(choice) {
+      if (choice === 'play') {
+        storyElement.innerText = 'You played outside and made some friends. You feel happy and energetic!';
+      } else if (choice === 'study') {
+        storyElement.innerText = 'You studied hard and impressed your teacher. You feel proud of yourself!';
+      }
+    }
+  </script>
 </body>
 </html>
