@@ -46,16 +46,52 @@
     <button onclick="choosePath('study')">Study hard</button>
   </div>
 
-  <script>
-    const storyElement = document.getElementById('story');
+<script>
+  // Track player progress and personality
+  let personality = {
+    happiness: 0,
+    intelligence: 0,
+    health: 100,
+    decisions: [],
+  };
 
-    function choosePath(choice) {
-      if (choice === 'play') {
-        storyElement.innerText = 'You played outside and made some friends. You feel happy and energetic!';
-      } else if (choice === 'study') {
-        storyElement.innerText = 'You studied hard and impressed your teacher. You feel proud of yourself!';
-      }
+  let day = 1;
+
+  const storyElement = document.getElementById('story');
+
+  function choosePath(choice) {
+    if (choice === 'play') {
+      personality.happiness += 10;
+      personality.health -= 5; // Maybe you got hurt playing!
+      personality.decisions.push(`Day ${day}: Played outside`);
+      storyElement.innerText =
+        'You played outside and made some friends. Happiness increased, but health slightly decreased!';
+    } else if (choice === 'study') {
+      personality.intelligence += 10;
+      personality.health -= 10; // Sitting too long affects health!
+      personality.decisions.push(`Day ${day}: Studied hard`);
+      storyElement.innerText =
+        'You studied hard and impressed your teacher. Intelligence increased, but health slightly decreased!';
     }
-  </script>
+
+    // Move to the next day after a choice
+    nextDay();
+  }
+
+  function nextDay() {
+    day++;
+    if (day <= 7) {
+      storyElement.innerText += \n\nDay ${day}: What will you do today?;
+    } else {
+      endGame();
+    }
+  }
+
+  function endGame() {
+    storyElement.innerText = `Your journey is complete! Here is how you turned out:\n\nHappiness: ${personality.happiness}\nIntelligence: ${personality.intelligence}\nHealth: ${personality.health}\n\nYour choices:\n${personality.decisions.join(
+      '\n'
+    )}`;
+  }
+</script>
 </body>
 </html>
