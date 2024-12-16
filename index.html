@@ -7,91 +7,206 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      margin: 20px;
+      margin: 0;
       padding: 0;
-      background: #f4f4f9;
+      background: linear-gradient(to bottom, #f4f4f9, #c4e0e5);
+      color: #333;
     }
-    h1 {
+
+    h1, h2 {
       text-align: center;
+      margin-top: 10px;
     }
-    .game-container {
-      max-width: 600px;
+
+    .intro-screen, .main-screen {
+      display: none;
+    }
+
+    .intro-screen.active, .main-screen.active {
+      display: block;
+    }
+
+    .container {
+      max-width: 800px;
       margin: auto;
-      background: white;
       padding: 20px;
-      border-radius: 8px;
+      background: white;
+      border-radius: 10px;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
-    button {
-      display: block;
-      margin: 10px 0;
+
+    .character-info, .chat-section {
+      margin-top: 20px;
+    }
+
+    .character-info {
+      border-bottom: 2px solid #ddd;
+      padding-bottom: 20px;
+    }
+
+    .info-item {
+      margin-bottom: 10px;
+    }
+
+    .chat-section {
+      margin-top: 20px;
+    }
+
+    #chat {
+      border: 1px solid #ddd;
+      border-radius: 10px;
       padding: 10px;
-      width: 100%;
+      height: 200px;
+      overflow-y: auto;
+      background: #f9f9f9;
+    }
+
+    .input-container {
+      display: flex;
+      margin-top: 10px;
+    }
+
+    .input-container input {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+
+    .input-container button {
+      padding: 10px 20px;
       border: none;
       background: #007bff;
       color: white;
-      border-radius: 4px;
+      border-radius: 5px;
       cursor: pointer;
     }
-    button:hover {
+
+    .input-container button:hover {
       background: #0056b3;
+    }
+
+    .diary {
+      margin-top: 20px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      background: #f9f9f9;
     }
   </style>
 </head>
 <body>
-  <h1>Life Simulation Game</h1>
-  <div class="game-container">
-    <p id="story">Welcome to your new life! You are a child. What do you want to do?</p>
-    <button onclick="choosePath('play')">Play outside</button>
-    <button onclick="choosePath('study')">Study hard</button>
+  <!-- Intro Screen -->
+  <div class="intro-screen active" id="intro-screen">
+    <div class="container">
+      <h1>Welcome to Life Simulation Game</h1>
+      <p>Embark on a journey through a lifetime of choices. Your decisions will shape the character's destiny.</p>
+      <button onclick="startGame()">Start Game</button>
+    </div>
   </div>
 
-<script>
-  // Track player progress and personality
-  let personality = {
-    happiness: 0,
-    intelligence: 0,
-    health: 100,
-    decisions: [],
-  };
+  <!-- Main Screen -->
+  <div class="main-screen" id="main-screen">
+    <div class="container">
+      <h1>Life Simulation Game</h1>
+      <div class="character-info">
+        <h2>Character Information</h2>
+        <div class="info-item">Name: John Doe</div>
+        <div class="info-item" id="age">Age: 0</div>
+        <div class="info-item">Happiness: <span id="happiness">50</span></div>
+        <div class="info-item">Intelligence: <span id="intelligence">50</span></div>
+        <div class="info-item">Health: <span id="health">100</span></div>
+      </div>
 
-  let day = 1;
+      <div class="chat-section">
+        <h2>Chat</h2>
+        <div id="chat"></div>
+        <div class="input-container">
+          <input type="text" id="user-input" placeholder="Your response...">
+          <button onclick="processInput()">Send</button>
+        </div>
+      </div>
 
-  const storyElement = document.getElementById('story');
+      <div class="diary">
+        <h2>Diary</h2>
+        <p id="diary">The diary will record significant moments from the character's life.</p>
+      </div>
+    </div>
+  </div>
 
-  function choosePath(choice) {
-    if (choice === 'play') {
-      personality.happiness += 10;
-      personality.health -= 5; // Maybe you got hurt playing!
-      personality.decisions.push(`Day ${day}: Played outside`);
-      storyElement.innerText =
-        'You played outside and made some friends. Happiness increased, but health slightly decreased!';
-    } else if (choice === 'study') {
-      personality.intelligence += 10;
-      personality.health -= 10; // Sitting too long affects health!
-      personality.decisions.push(`Day ${day}: Studied hard`);
-      storyElement.innerText =
-        'You studied hard and impressed your teacher. Intelligence increased, but health slightly decreased!';
+  <script>
+    // Character data
+    let character = {
+      age: 0,
+      happiness: 50,
+      intelligence: 50,
+      health: 100,
+      diary: [],
+    };
+
+    let chatMessages = [
+      "What is your biggest dream as a child?",
+      "You made a friend at school. What kind of friendship is it?",
+      "Do you like to spend your time studying or playing?",
+      "You got your first job offer. Do you accept it?",
+      "What is your biggest regret in life so far?",
+    ];
+
+    // Start game
+    function startGame() {
+      document.getElementById("intro-screen").classList.remove("active");
+      document.getElementById("main-screen").classList.add("active");
+
+      // Start age timer
+      setInterval(updateAge, 60000); // 1 minute = 1 year
+      sendMessage("Welcome! Let's start your journey.");
+      sendMessage(chatMessages[character.age % chatMessages.length]);
     }
 
-    // Move to the next day after a choice
-    nextDay();
-  }
-
-  function nextDay() {
-    day++;
-    if (day <= 7) {
-      storyElement.innerText += `\n\nDay ${day}: What will you do today?`;
-    } else {
-      endGame();
+    // Update age and refresh screen
+    function updateAge() {
+      character.age++;
+      document.getElementById("age").innerText = `Age: ${character.age}`;
+      sendMessage(chatMessages[character.age % chatMessages.length]);
     }
-  }
 
-  function endGame() {
-    storyElement.innerText = `Your journey is complete! Here is how you turned out:\n\nHappiness: ${personality.happiness}\nIntelligence: ${personality.intelligence}\nHealth: ${personality.health}\n\nYour choices:\n${personality.decisions.join(
-      '\n'
-    )}`;
-  }
-</script>
+    // Process user input
+    function processInput() {
+      const input = document.getElementById("user-input").value;
+      if (!input) return;
+
+      addDiaryEntry(input);
+      updateCharacter(input);
+      document.getElementById("user-input").value = ""; // Clear input
+    }
+
+    // Add to diary
+    function addDiaryEntry(entry) {
+      character.diary.push(`Age ${character.age}: ${entry}`);
+      document.getElementById("diary").innerText = character.diary.join("\n");
+    }
+
+    // Update character based on input
+    function updateCharacter(input) {
+      // Simple logic to update characteristics
+      if (input.toLowerCase().includes("happy")) character.happiness += 10;
+      if (input.toLowerCase().includes("study")) character.intelligence += 10;
+      if (input.toLowerCase().includes("run")) character.health += 5;
+
+      // Update display
+      document.getElementById("happiness").innerText = character.happiness;
+      document.getElementById("intelligence").innerText = character.intelligence;
+      document.getElementById("health").innerText = character.health;
+    }
+
+    // Send a message in the chat
+    function sendMessage(message) {
+      const chat = document.getElementById("chat");
+      const messageElement = document.createElement("div");
+      messageElement.innerText = message;
+      chat.appendChild(messageElement);
+      chat.scrollTop = chat.scrollHeight; // Auto-scroll to bottom
+    }
+  </script>
 </body>
 </html>
