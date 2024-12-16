@@ -134,79 +134,123 @@
     </div>
   </div>
 
-  <script>
-    // Character data
-    let character = {
-      age: 0,
-      happiness: 50,
-      intelligence: 50,
-      health: 100,
-      diary: [],
-    };
+<script>
+  // Extend character data
+  let character = {
+    age: 0,
+    happiness: 50,
+    intelligence: 50,
+    health: 100,
+    wealth: 50,
+    diary: [],
+  };
 
-    let chatMessages = [
-      "What is your biggest dream as a child?",
-      "You made a friend at school. What kind of friendship is it?",
-      "Do you like to spend your time studying or playing?",
-      "You got your first job offer. Do you accept it?",
-      "What is your biggest regret in life so far?",
-    ];
+  let chatMessages = [
+    "What is your biggest dream as a child?",
+    "You made a friend at school. What kind of friendship is it?",
+    "Do you like to spend your time studying or playing?",
+    "You got your first job offer. Do you accept it?",
+    "What is your biggest regret in life so far?",
+  ];
 
-    // Start game
-    function startGame() {
-      document.getElementById("intro-screen").classList.remove("active");
-      document.getElementById("main-screen").classList.add("active");
+  let randomEvents = [
+    {
+      event: "You won a small lottery! (+20 Wealth)",
+      effects: { wealth: 20 },
+    },
+    {
+      event: "You fell sick. (-15 Health)",
+      effects: { health: -15 },
+    },
+    {
+      event: "You found a mentor who boosted your confidence! (+10 Happiness, +10 Intelligence)",
+      effects: { happiness: 10, intelligence: 10 },
+    },
+    {
+      event: "You lost some money in a bad investment. (-10 Wealth)",
+      effects: { wealth: -10 },
+    },
+    {
+      event: "You adopted a puppy! (+15 Happiness, -5 Wealth)",
+      effects: { happiness: 15, wealth: -5 },
+    },
+  ];
 
-      // Start age timer
-      setInterval(updateAge, 60000); // 1 minute = 1 year
-      sendMessage("Welcome! Let's start your journey.");
-      sendMessage(chatMessages[character.age % chatMessages.length]);
+  // Start game
+  function startGame() {
+    document.getElementById("intro-screen").classList.remove("active");
+    document.getElementById("main-screen").classList.add("active");
+
+    // Start age timer
+    setInterval(updateAge, 60000); // 1 minute = 1 year
+    sendMessage("Welcome! Let's start your journey.");
+    sendMessage(chatMessages[character.age % chatMessages.length]);
+  }
+
+  // Update age and trigger random events
+  function updateAge() {
+    character.age++;
+    document.getElementById("age").innerText = `Age: ${character.age}`;
+
+    // Trigger random life event with a 50% chance
+    if (Math.random() > 0.5) {
+      triggerRandomEvent();
     }
 
-    // Update age and refresh screen
-    function updateAge() {
-      character.age++;
-      document.getElementById("age").innerText = `Age: ${character.age}`;
-      sendMessage(chatMessages[character.age % chatMessages.length]);
+    // Send a new chat message
+    sendMessage(chatMessages[character.age % chatMessages.length]);
+  }
+
+  // Process user input
+  function processInput() {
+    const input = document.getElementById("user-input").value;
+    if (!input) return;
+
+    addDiaryEntry(input);
+    updateCharacter(input);
+    document.getElementById("user-input").value = ""; // Clear input
+  }
+
+  // Trigger a random life event
+  function triggerRandomEvent() {
+    const randomEvent = randomEvents[Math.floor(Math.random() * randomEvents.length)];
+    sendMessage(`Random Event: ${randomEvent.event}`);
+    addDiaryEntry(`Random Event: ${randomEvent.event}`);
+
+    // Apply effects
+    for (const stat in randomEvent.effects) {
+      character[stat] += randomEvent.effects[stat];
+      document.getElementById(stat).innerText = character[stat];
     }
+  }
 
-    // Process user input
-    function processInput() {
-      const input = document.getElementById("user-input").value;
-      if (!input) return;
+  // Add to diary
+  function addDiaryEntry(entry) {
+    character.diary.push(`Age ${character.age}: ${entry}`);
+    document.getElementById("diary").innerText = character.diary.join("\n");
+  }
 
-      addDiaryEntry(input);
-      updateCharacter(input);
-      document.getElementById("user-input").value = ""; // Clear input
-    }
+  // Update character based on input
+  function updateCharacter(input) {
+    if (input.toLowerCase().includes("happy")) character.happiness += 10;
+    if (input.toLowerCase().includes("study")) character.intelligence += 10;
+    if (input.toLowerCase().includes("money")) character.wealth += 10;
 
-    // Add to diary
-    function addDiaryEntry(entry) {
-      character.diary.push(`Age ${character.age}: ${entry}`);
-      document.getElementById("diary").innerText = character.diary.join("\n");
-    }
+    // Update display
+    document.getElementById("happiness").innerText = character.happiness;
+    document.getElementById("intelligence").innerText = character.intelligence;
+    document.getElementById("health").innerText = character.health;
+    document.getElementById("wealth").innerText = character.wealth;
+  }
 
-    // Update character based on input
-    function updateCharacter(input) {
-      // Simple logic to update characteristics
-      if (input.toLowerCase().includes("happy")) character.happiness += 10;
-      if (input.toLowerCase().includes("study")) character.intelligence += 10;
-      if (input.toLowerCase().includes("run")) character.health += 5;
-
-      // Update display
-      document.getElementById("happiness").innerText = character.happiness;
-      document.getElementById("intelligence").innerText = character.intelligence;
-      document.getElementById("health").innerText = character.health;
-    }
-
-    // Send a message in the chat
-    function sendMessage(message) {
-      const chat = document.getElementById("chat");
-      const messageElement = document.createElement("div");
-      messageElement.innerText = message;
-      chat.appendChild(messageElement);
-      chat.scrollTop = chat.scrollHeight; // Auto-scroll to bottom
-    }
-  </script>
+  // Send a message in the chat
+  function sendMessage(message) {
+    const chat = document.getElementById("chat");
+    const messageElement = document.createElement("div");
+    messageElement.innerText = message;
+    chat.appendChild(messageElement);
+    chat.scrollTop = chat.scrollHeight; // Auto-scroll to bottom
+  }
+</script>
 </body>
 </html>
