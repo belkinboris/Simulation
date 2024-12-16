@@ -11,6 +11,7 @@
       padding: 0;
       background: linear-gradient(to bottom, #f4f4f9, #c4e0e5);
       color: #333;
+      transition: background 1s;
     }
 
     h1, h2 {
@@ -18,11 +19,11 @@
       margin-top: 10px;
     }
 
-    .intro-screen, .main-screen {
+    .intro-screen, .main-screen, .character-creation {
       display: none;
     }
 
-    .intro-screen.active, .main-screen.active {
+    .intro-screen.active, .main-screen.active, .character-creation.active {
       display: block;
     }
 
@@ -35,7 +36,7 @@
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
 
-    .character-info, .chat-section {
+    .character-info, .chat-section, .inventory {
       margin-top: 20px;
     }
 
@@ -86,12 +87,16 @@
       background: #0056b3;
     }
 
-    .diary {
+    .diary, .inventory {
       margin-top: 20px;
       padding: 10px;
       border: 1px solid #ddd;
       border-radius: 10px;
       background: #f9f9f9;
+    }
+
+    .inventory-item {
+      margin: 5px 0;
     }
   </style>
 </head>
@@ -101,7 +106,24 @@
     <div class="container">
       <h1>Welcome to Life Simulation Game</h1>
       <p>Embark on a journey through a lifetime of choices. Your decisions will shape the character's destiny.</p>
-      <button onclick="startGame()">Start Game</button>
+      <button onclick="startCharacterCreation()">Start Game</button>
+    </div>
+  </div>
+
+  <!-- Character Creation Screen -->
+  <div class="character-creation" id="character-creation">
+    <div class="container">
+      <h1>Create Your Character</h1>
+      <label for="name">Name:</label>
+      <input type="text" id="name" placeholder="Enter character's name">
+      <p>Select your starting stats:</p>
+      <div>
+        Happiness: <input type="number" id="start-happiness" value="50"> <br>
+        Intelligence: <input type="number" id="start-intelligence" value="50"> <br>
+        Health: <input type="number" id="start-health" value="100"> <br>
+        Wealth: <input type="number" id="start-wealth" value="50">
+      </div>
+      <button onclick="startGame()">Start Life</button>
     </div>
   </div>
 
@@ -111,12 +133,18 @@
       <h1>Life Simulation Game</h1>
       <div class="character-info">
         <h2>Character Information</h2>
-        <div class="info-item">Name: John Doe</div>
+        <div class="info-item" id="character-name"></div>
         <div class="info-item" id="age">Age: 0</div>
         <div class="info-item">Happiness: <span id="happiness">50</span></div>
         <div class="info-item">Intelligence: <span id="intelligence">50</span></div>
         <div class="info-item">Health: <span id="health">100</span></div>
         <div class="info-item">Wealth: <span id="wealth">50</span></div>
+        <div class="info-item">Achievements: <span id="achievements">None</span></div>
+      </div>
+
+      <div class="inventory">
+        <h2>Inventory</h2>
+        <div id="inventory-list">No items yet.</div>
       </div>
 
       <div class="chat-section">
@@ -136,17 +164,18 @@
   </div>
 
 <script>
-  // Extend character data
   let character = {
     age: 0,
     happiness: 50,
     intelligence: 50,
     health: 100,
     wealth: 50,
+    inventory: [],
+    achievements: [],
     diary: [],
   };
 
-  let chatMessages = [
+  const chatMessages = [
     "What is your biggest dream as a child?",
     "You made a friend at school. What kind of friendship is it?",
     "Do you like to spend your time studying or playing?",
@@ -154,103 +183,68 @@
     "What is your biggest regret in life so far?",
   ];
 
-  let randomEvents = [
-    {
-      event: "You won a small lottery! (+20 Wealth)",
-      effects: { wealth: 20 },
-    },
-    {
-      event: "You fell sick. (-15 Health)",
-      effects: { health: -15 },
-    },
-    {
-      event: "You found a mentor who boosted your confidence! (+10 Happiness, +10 Intelligence)",
-      effects: { happiness: 10, intelligence: 10 },
-    },
-    {
-      event: "You lost some money in a bad investment. (-10 Wealth)",
-      effects: { wealth: -10 },
-    },
-    {
-      event: "You adopted a puppy! (+15 Happiness, -5 Wealth)",
-      effects: { happiness: 15, wealth: -5 },
-    },
+  const milestones = [
+    { age: 18, event: "You graduated high school! (+10 Intelligence)", effects: { intelligence: 10 } },
+    { age: 30, event: "You got married! (+10 Happiness)", effects: { happiness: 10 } },
+    { age: 65, event: "You retired! (+20 Happiness)", effects: { happiness: 20 } },
   ];
 
-  // Start game
-  function startGame() {
+  function startCharacterCreation() {
     document.getElementById("intro-screen").classList.remove("active");
-    document.getElementById("main-screen").classList.add("active");
-
-    // Start age timer
-    setInterval(updateAge, 60000); // 1 minute = 1 year
-    sendMessage("Welcome! Let's start your journey.");
-    sendMessage(chatMessages[character.age % chatMessages.length]);
+    document.getElementById("character-creation").classList.add("active");
   }
 
-  // Update age and trigger random events
+  function startGame() {
+    const name = document.getElementById("name").value || "Unnamed Hero";
+    character.happiness = parseInt(document.getElementById("start-happiness").value);
+    character.intelligence = parseInt(document.getElementById("start-intelligence").value);
+    character.health = parseInt(document.getElementById("start-health").value);
+    character.wealth = parseInt(document.getElementById("start-wealth").value);
+
+    document.getElementById("character-creation").classList.remove("active");
+    document.getElementById("main-screen").classList.add("active");
+    document.getElementById("character-name").innerText = `Name: ${name}`;
+
+    setInterval(updateAge, 10000); // 10 seconds = 1 year
+    sendMessage("Welcome! Let's start your journey.");
+  }
+
   function updateAge() {
     character.age++;
     document.getElementById("age").innerText = `Age: ${character.age}`;
-
-    // Trigger random life event with a 50% chance
-    if (Math.random() > 0.5) {
-      triggerRandomEvent();
-    }
-
-    // Send a new chat message
+    checkMilestones();
     sendMessage(chatMessages[character.age % chatMessages.length]);
   }
 
-  // Process user input
-  function processInput() {
-    const input = document.getElementById("user-input").value;
-    if (!input) return;
-
-    addDiaryEntry(input);
-    updateCharacter(input);
-    document.getElementById("user-input").value = ""; // Clear input
-  }
-
-  // Trigger a random life event
-  function triggerRandomEvent() {
-    const randomEvent = randomEvents[Math.floor(Math.random() * randomEvents.length)];
-    sendMessage(`Random Event: ${randomEvent.event}`);
-    addDiaryEntry(`Random Event: ${randomEvent.event}`);
-
-    // Apply effects
-    for (const stat in randomEvent.effects) {
-      character[stat] += randomEvent.effects[stat];
-      document.getElementById(stat).innerText = character[stat];
+  function checkMilestones() {
+    const milestone = milestones.find((m) => m.age === character.age);
+    if (milestone) {
+      sendMessage(`Milestone: ${milestone.event}`);
+      for (const stat in milestone.effects) {
+        character[stat] += milestone.effects[stat];
+        document.getElementById(stat).innerText = character[stat];
+      }
     }
   }
 
-  // Add to diary
+  function processInput() {
+    const input = document.getElementById("user-input").value;
+    if (!input) return;
+    addDiaryEntry(input);
+    document.getElementById("user-input").value = "";
+  }
+
   function addDiaryEntry(entry) {
     character.diary.push(`Age ${character.age}: ${entry}`);
     document.getElementById("diary").innerText = character.diary.join("\n");
   }
 
-  // Update character based on input
-  function updateCharacter(input) {
-    if (input.toLowerCase().includes("happy")) character.happiness += 10;
-    if (input.toLowerCase().includes("study")) character.intelligence += 10;
-    if (input.toLowerCase().includes("money")) character.wealth += 10;
-
-    // Update display
-    document.getElementById("happiness").innerText = character.happiness;
-    document.getElementById("intelligence").innerText = character.intelligence;
-    document.getElementById("health").innerText = character.health;
-    document.getElementById("wealth").innerText = character.wealth;
-  }
-
-  // Send a message in the chat
   function sendMessage(message) {
     const chat = document.getElementById("chat");
     const messageElement = document.createElement("div");
     messageElement.innerText = message;
     chat.appendChild(messageElement);
-    chat.scrollTop = chat.scrollHeight; // Auto-scroll to bottom
+    chat.scrollTop = chat.scrollHeight;
   }
 </script>
 </body>
