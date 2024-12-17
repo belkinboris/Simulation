@@ -3,167 +3,159 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Psychological Life Simulator</title>
+    <title>Life Simulator</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
-            background: #f0f4f8;
-            color: #333;
-        }
-        h1 {
-            text-align: center;
-            margin: 10px;
-        }
-        .container {
-            max-width: 600px;
-            margin: auto;
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        #event-popup {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-            padding: 20px;
-            width: 80%;
-            max-width: 400px;
-            z-index: 10;
-        }
-        #event-popup h2, #event-popup p {
+            padding: 0;
+            background: linear-gradient(to bottom, #e8f1ff, #d4e0fc);
             text-align: center;
         }
-        #event-popup button {
-            width: 100%;
-            padding: 10px;
-            margin-top: 10px;
-            border: none;
-            border-radius: 5px;
-            background: #007bff;
-            color: white;
-            cursor: pointer;
-        }
-        button:hover {
-            background: #0056b3;
-        }
-        #stats, #relationships {
+        #intro, #game-screen {
             margin-top: 20px;
+        }
+        #intro {
+            display: block;
+        }
+        #game-screen {
+            display: none;
+        }
+        #header {
+            background: #4a90e2;
+            color: white;
+            padding: 10px;
+        }
+        #events {
+            margin: 20px;
+            padding: 10px;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 10px;
         }
         .stat-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        .bar {
-            width: 70%;
-            background: #ddd;
-            border-radius: 5px;
-            overflow: hidden;
+            background: #f0f0f0;
+            border-radius: 10px;
             height: 10px;
+            width: 100px;
+            margin: 5px;
+            position: relative;
         }
-        .bar-fill {
+        .stat-fill {
+            background: #4a90e2;
+            border-radius: 10px;
             height: 100%;
-            background: #28a745;
+            position: absolute;
         }
-        .actions {
-            margin-top: 20px;
-        }
-        .actions button {
-            width: 100%;
-            margin: 5px 0;
-            padding: 10px;
-            border: none;
-            background: #007bff;
+        button {
+            padding: 10px 20px;
+            background: #4a90e2;
             color: white;
+            border: none;
             border-radius: 5px;
             cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #357ab7;
         }
     </style>
 </head>
 <body>
-    <h1>Psychological Life Simulator</h1>
-    <div class="container">
-        <div id="stats">
-            <h2>Character Stats</h2>
-            <div class="stat-bar">Happiness 😄 <div class="bar"><div class="bar-fill" id="happiness" style="width: 50%;"></div></div></div>
-            <div class="stat-bar">Health ❤️ <div class="bar"><div class="bar-fill" id="health" style="width: 100%;"></div></div></div>
-            <div class="stat-bar">Intelligence 🧠 <div class="bar"><div class="bar-fill" id="intelligence" style="width: 20%;"></div></div></div>
-            <div class="stat-bar">Wealth 💰 <div class="bar"><div class="bar-fill" id="wealth" style="width: 10%;"></div></div></div>
-        </div>
-        <div id="relationships">
-            <h2>Relationships</h2>
-            <p>Parents ❤️: <span id="parents-relationship">100</span>%</p>
-        </div>
-        <div class="actions">
-            <button onclick="ageUp()">Age Up</button>
-        </div>
+    <!-- Intro Screen -->
+    <div id="intro">
+        <h1>Welcome to Life Simulator!</h1>
+        <p>Enter your character's name:</p>
+        <input type="text" id="character-name" placeholder="Your Name">
+        <br><br>
+        <button onclick="startGame()">Start Playing</button>
     </div>
 
-    <div id="event-popup">
-        <h2 id="event-title"></h2>
-        <p id="event-text"></p>
-        <button onclick="closePopup()">OK</button>
+    <!-- Game Screen -->
+    <div id="game-screen">
+        <div id="header">
+            <h2 id="player-name"></h2>
+            <p id="player-age">Age: 0 years</p>
+        </div>
+        <div id="events">
+            <p id="event-text">Click "Grow Up" to start your life!</p>
+        </div>
+        <button onclick="growUp()">Grow Up</button>
+        <div class="stats">
+            <div>
+                Happiness
+                <div class="stat-bar"><div id="happiness" class="stat-fill" style="width: 50%;"></div></div>
+            </div>
+            <div>
+                Health
+                <div class="stat-bar"><div id="health" class="stat-fill" style="width: 100%;"></div></div>
+            </div>
+            <div>
+                Intelligence
+                <div class="stat-bar"><div id="intelligence" class="stat-fill" style="width: 10%;"></div></div>
+            </div>
+            <div>
+                Looks
+                <div class="stat-bar"><div id="looks" class="stat-fill" style="width: 50%;"></div></div>
+            </div>
+        </div>
     </div>
 
     <script>
-        const backendUrl = "YOUR_BACKEND_URL"; // Replace with Replit backend URL
-
         let age = 0;
-        let stats = { happiness: 50, health: 100, intelligence: 20, wealth: 10 };
-        let relationships = { parents: 100 };
+        let stats = {
+            happiness: 50,
+            health: 100,
+            intelligence: 10,
+            looks: 50
+        };
+
+        function startGame() {
+            const name = document.getElementById('character-name').value || 'Player';
+            document.getElementById('player-name').innerText = `Name: ${name}`;
+            document.getElementById('intro').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'block';
+        }
+
+        function growUp() {
+            age++;
+            document.getElementById('player-age').innerText = `Age: ${age} years`;
+
+            const eventText = getRandomEvent();
+            document.getElementById('event-text').innerText = eventText;
+
+            updateStats();
+        }
+
+        function getRandomEvent() {
+            const events = [
+                { text: "You learned to smile! Happiness +10", effect: { happiness: 10 } },
+                { text: "You caught a cold. Health -10", effect: { health: -10 } },
+                { text: "You discovered books! Intelligence +20", effect: { intelligence: 20 } },
+                { text: "You fell and got a scar. Looks -10", effect: { looks: -10 } }
+            ];
+
+            const randomEvent = events[Math.floor(Math.random() * events.length)];
+
+            for (const key in randomEvent.effect) {
+                stats[key] += randomEvent.effect[key];
+                stats[key] = Math.max(0, Math.min(100, stats[key]));
+            }
+
+            return randomEvent.text;
+        }
 
         function updateStats() {
-            document.getElementById('happiness').style.width = stats.happiness + '%';
-            document.getElementById('health').style.width = stats.health + '%';
-            document.getElementById('intelligence').style.width = stats.intelligence + '%';
-            document.getElementById('wealth').style.width = stats.wealth + '%';
-            document.getElementById('parents-relationship').innerText = relationships.parents;
+            document.getElementById('happiness').style.width = `${stats.happiness}%`;
+            document.getElementById('health').style.width = `${stats.health}%`;
+            document.getElementById('intelligence').style.width = `${stats.intelligence}%`;
+            document.getElementById('looks').style.width = `${stats.looks}%`;
         }
-
-        function closePopup() {
-            document.getElementById('event-popup').style.display = 'none';
-        }
-
-        async function ageUp() {
-            age++;
-            const prompt = `The character is now ${age} years old. Generate a realistic life event description for a ${age}-year-old and its impact on their stats.`;
-            
-            try {
-                const response = await fetch(`${backendUrl}/generate`, {
-                    method: 'POST',
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ prompt })
-                });
-                const data = await response.json();
-
-                showPopup(data.response);
-                // Example: Adjust stats randomly for demo
-                stats.happiness -= Math.random() * 5;
-                stats.health -= Math.random() * 10;
-                stats.intelligence += Math.random() * 5;
-                stats.wealth += Math.random() * 10;
-
-                updateStats();
-            } catch (error) {
-                console.error("Error fetching life event:", error);
-            }
-        }
-
-        function showPopup(eventText) {
-            document.getElementById('event-title').innerText = `Age ${age} Event`;
-            document.getElementById('event-text').innerText = eventText;
-            document.getElementById('event-popup').style.display = 'block';
-        }
-
-        updateStats();
     </script>
 </body>
 </html>
