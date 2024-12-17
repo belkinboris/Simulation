@@ -17,7 +17,15 @@
             text-align: center;
         }
 
-        .main-container {
+        .page {
+            display: none;
+        }
+
+        .active {
+            display: block;
+        }
+
+        .container {
             max-width: 800px;
             margin: auto;
             padding: 20px;
@@ -26,48 +34,30 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
-        .character-info {
+        .chat, .diary, .traits {
             margin-top: 20px;
-            padding: 10px;
             border: 1px solid #ddd;
             border-radius: 10px;
+            padding: 10px;
             background: #f9f9f9;
-        }
-
-        .stat {
-            margin-bottom: 5px;
-        }
-
-        .scale {
-            height: 15px;
-            background-color: #ccc;
-            border-radius: 7px;
-            overflow: hidden;
-        }
-
-        .scale-bar {
-            height: 100%;
-            background-color: #007bff;
-        }
-
-        #chat {
-            margin-top: 20px;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            padding: 10px;
             height: 200px;
             overflow-y: auto;
-            background: #f9f9f9;
         }
 
-        .buttons-container {
+        .input-container {
+            margin-top: 10px;
             display: flex;
             gap: 10px;
-            margin-top: 10px;
+        }
+
+        input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
         }
 
         button {
-            flex: 1;
             padding: 10px;
             border: none;
             background: #007bff;
@@ -82,119 +72,119 @@
     </style>
 </head>
 <body>
-    <h1>Psychology Life Simulator</h1>
-    <div class="main-container">
-        <!-- Character Information -->
-        <div class="character-info">
-            <h2>Character Stats</h2>
-            <div class="stat">Personality: <span id="personality"></span></div>
-            <div class="stat">Happiness:
-                <div class="scale"><div id="happiness" class="scale-bar" style="width: 50%;"></div></div>
-            </div>
-            <div class="stat">Intelligence:
-                <div class="scale"><div id="intelligence" class="scale-bar" style="width: 10%;"></div></div>
-            </div>
-            <div class="stat">Health:
-                <div class="scale"><div id="health" class="scale-bar" style="width: 100%;"></div></div>
-            </div>
-            <div class="stat">Wealth:
-                <div class="scale"><div id="wealth" class="scale-bar" style="width: 10%;"></div></div>
-            </div>
+    <!-- Intro Page -->
+    <div id="intro" class="page active">
+        <div class="container">
+            <h1>Welcome to the Psychology Life Simulator</h1>
+            <p>Enter the name of your character:</p>
+            <input id="characterName" placeholder="Character Name">
+            <button onclick="startGame()">Start Game</button>
         </div>
+    </div>
 
-        <!-- Chat Section -->
-        <div id="chat">Initializing your character's life...</div>
-        <div class="buttons-container">
-            <button onclick="processAnswer('positive')">Positive</button>
-            <button onclick="processAnswer('neutral')">Neutral</button>
-            <button onclick="processAnswer('negative')">Negative</button>
+    <!-- Main Page -->
+    <div id="main" class="page">
+        <div class="container">
+            <h1 id="characterGreeting"></h1>
+            <div class="chat" id="chat">Loading your life events...</div>
+            <div class="input-container">
+                <input id="userInput" placeholder="Type your response...">
+                <button onclick="submitAnswer()">Send</button>
+            </div>
+            <button onclick="showTraits()">View Character Traits</button>
+            <div class="diary" id="diary">Your diary will appear here...</div>
+        </div>
+    </div>
+
+    <!-- Character Traits Page -->
+    <div id="traits" class="page">
+        <div class="container">
+            <h1>Character Traits</h1>
+            <div id="traitsList"></div>
+            <button onclick="backToMain()">Return to Main Screen</button>
         </div>
     </div>
 
 <script>
     const backendUrl = "https://24976535-615c-4c49-8b64-1c3a77c67211-00-1fp62i9n295va.sisko.replit.dev";
 
-    const character = {
+    let character = {
+        name: "",
         personality: "",
-        happiness: 50,
-        intelligence: 10,
-        health: 100,
-        wealth: 10,
-        age: 0,
+        traits: {
+            happiness: 50,
+            empathy: 50,
+            ambition: 50,
+            anger: 10,
+            introversion: 50
+        },
         diary: []
     };
 
-    const personalityTypes = [
-        "ENFP - The Campaigner: Enthusiastic and social.",
-        "INTJ - The Architect: Strategic and reserved.",
-        "ISTP - The Virtuoso: Independent and practical.",
-        "ISFJ - The Defender: Loyal and caring."
+    const personalities = [
+        "ENFP - Campaigner: Enthusiastic and social.",
+        "INTJ - Architect: Strategic and reserved.",
+        "ISTP - Virtuoso: Independent and practical.",
+        "ISFJ - Defender: Loyal and caring."
     ];
 
-    // Randomly assign a personality
-    character.personality = personalityTypes[Math.floor(Math.random() * personalityTypes.length)];
-    document.getElementById("personality").innerText = character.personality;
-
-    function updateStats() {
-        document.getElementById("happiness").style.width = character.happiness + "%";
-        document.getElementById("intelligence").style.width = character.intelligence + "%";
-        document.getElementById("health").style.width = character.health + "%";
-        document.getElementById("wealth").style.width = character.wealth + "%";
+    function startGame() {
+        character.name = document.getElementById("characterName").value || "John Doe";
+        character.personality = personalities[Math.floor(Math.random() * personalities.length)];
+        document.getElementById("characterGreeting").innerText = `Hello, ${character.name}! (${character.personality})`;
+        document.getElementById("intro").classList.remove("active");
+        document.getElementById("main").classList.add("active");
+        askAIQuestion("Generate the first event in this character's life.");
     }
 
-    async function askAIQuestion() {
-        const prompt = `Generate a psychological question for a ${character.age}-year-old with personality: ${character.personality}. The character has the following traits: Happiness ${character.happiness}, Intelligence ${character.intelligence}, Health ${character.health}, Wealth ${character.wealth}.`;
-        try {
-            const response = await fetch(`${backendUrl}/generate`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ prompt })
-            });
-
-            const data = await response.json();
-            document.getElementById("chat").innerText = data.response;
-        } catch (error) {
-            console.error("Error:", error);
-            document.getElementById("chat").innerText = "Failed to load a question.";
-        }
+    async function askAIQuestion(prompt) {
+        const response = await fetch(`${backendUrl}/generate`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ prompt })
+        });
+        const data = await response.json();
+        document.getElementById("chat").innerText = data.response;
     }
 
-    async function processAnswer(type) {
-        const effects = {
-            positive: { happiness: 5, intelligence: 3 },
-            neutral: { happiness: 2 },
-            negative: { happiness: -5, health: -5 }
-        };
+    async function submitAnswer() {
+        const userResponse = document.getElementById("userInput").value;
+        if (!userResponse) return;
 
-        for (const key in effects[type]) {
-            character[key] += effects[type][key];
-        }
+        // Send user input and ask for diary update
+        const diaryPrompt = `Based on the response: "${userResponse}", write a diary entry reflecting the character's life. Traits: Happiness ${character.traits.happiness}, Ambition ${character.traits.ambition}, Anger ${character.traits.anger}.`;
+        const response = await fetch(`${backendUrl}/generate`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ prompt: diaryPrompt })
+        });
 
-        updateStats();
+        const data = await response.json();
+        character.diary.push(data.response);
+        document.getElementById("diary").innerText = character.diary.join("\n\n");
+        document.getElementById("userInput").value = "";
 
-        // Send a diary prompt to the AI
-        const diaryPrompt = `Write a diary entry for a character with personality ${character.personality}, who just received ${type} advice. The character's current stats are: Happiness ${character.happiness}, Intelligence ${character.intelligence}, Health ${character.health}, Wealth ${character.wealth}.`;
-        try {
-            const response = await fetch(`${backendUrl}/generate`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ prompt: diaryPrompt })
-            });
-
-            const data = await response.json();
-            console.log("Diary Entry:", data.response);
-            character.diary.push(data.response);
-
-            character.age++;
-            askAIQuestion();
-        } catch (error) {
-            console.error("Error:", error);
-        }
+        // Ask the next question
+        askAIQuestion("Generate the next event or question in the character's life.");
     }
 
-    // Initialize the game
-    updateStats();
-    askAIQuestion();
+    function showTraits() {
+        document.getElementById("main").classList.remove("active");
+        document.getElementById("traits").classList.add("active");
+
+        const traits = character.traits;
+        let traitsHtml = "";
+        for (const key in traits) {
+            traitsHtml += `<p>${key.toUpperCase()}: ${traits[key]}</p>`;
+        }
+        traitsHtml += `<p>Personality: ${character.personality}</p>`;
+        document.getElementById("traitsList").innerHTML = traitsHtml;
+    }
+
+    function backToMain() {
+        document.getElementById("traits").classList.remove("active");
+        document.getElementById("main").classList.add("active");
+    }
 </script>
 </body>
 </html>
