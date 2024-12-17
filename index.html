@@ -15,10 +15,9 @@
 
         h1, h2 {
             text-align: center;
-            margin-top: 10px;
         }
 
-        .main-screen {
+        .main-container {
             max-width: 800px;
             margin: auto;
             padding: 20px;
@@ -27,7 +26,32 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
+        .character-info {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            background: #f9f9f9;
+        }
+
+        .stat {
+            margin-bottom: 5px;
+        }
+
+        .scale {
+            height: 15px;
+            background-color: #ccc;
+            border-radius: 7px;
+            overflow: hidden;
+        }
+
+        .scale-bar {
+            height: 100%;
+            background-color: #007bff;
+        }
+
         #chat {
+            margin-top: 20px;
             border: 1px solid #ddd;
             border-radius: 10px;
             padding: 10px;
@@ -43,13 +67,13 @@
         }
 
         button {
+            flex: 1;
             padding: 10px;
             border: none;
             background: #007bff;
             color: white;
             border-radius: 5px;
             cursor: pointer;
-            flex: 1;
         }
 
         button:hover {
@@ -58,9 +82,28 @@
     </style>
 </head>
 <body>
-    <div class="main-screen">
-        <h1>Psychology Life Simulator</h1>
-        <div id="chat">The character will ask you a question.</div>
+    <h1>Psychology Life Simulator</h1>
+    <div class="main-container">
+        <!-- Character Information -->
+        <div class="character-info">
+            <h2>Character Stats</h2>
+            <div class="stat">Personality: <span id="personality"></span></div>
+            <div class="stat">Happiness:
+                <div class="scale"><div id="happiness" class="scale-bar" style="width: 50%;"></div></div>
+            </div>
+            <div class="stat">Intelligence:
+                <div class="scale"><div id="intelligence" class="scale-bar" style="width: 10%;"></div></div>
+            </div>
+            <div class="stat">Health:
+                <div class="scale"><div id="health" class="scale-bar" style="width: 100%;"></div></div>
+            </div>
+            <div class="stat">Wealth:
+                <div class="scale"><div id="wealth" class="scale-bar" style="width: 10%;"></div></div>
+            </div>
+        </div>
+
+        <!-- Chat Section -->
+        <div id="chat">Initializing your character's life...</div>
         <div class="buttons-container">
             <button onclick="processAnswer('positive')">Positive</button>
             <button onclick="processAnswer('neutral')">Neutral</button>
@@ -69,54 +112,88 @@
     </div>
 
 <script>
-    const backendUrl = "https://24976535-615c-4c49-8b64-1c3a77c67211-00-1fp62i9n295va.sisko.replit.dev"; // Your backend URL
+    const backendUrl = "https://24976535-615c-4c49-8b64-1c3a77c67211-00-1fp62i9n295va.sisko.replit.dev";
 
-    // Ask AI a question
+    const character = {
+        personality: "",
+        happiness: 50,
+        intelligence: 10,
+        health: 100,
+        wealth: 10,
+        age: 0,
+        diary: []
+    };
+
+    const personalityTypes = [
+        "ENFP - The Campaigner: Enthusiastic and social.",
+        "INTJ - The Architect: Strategic and reserved.",
+        "ISTP - The Virtuoso: Independent and practical.",
+        "ISFJ - The Defender: Loyal and caring."
+    ];
+
+    // Randomly assign a personality
+    character.personality = personalityTypes[Math.floor(Math.random() * personalityTypes.length)];
+    document.getElementById("personality").innerText = character.personality;
+
+    function updateStats() {
+        document.getElementById("happiness").style.width = character.happiness + "%";
+        document.getElementById("intelligence").style.width = character.intelligence + "%";
+        document.getElementById("health").style.width = character.health + "%";
+        document.getElementById("wealth").style.width = character.wealth + "%";
+    }
+
     async function askAIQuestion() {
+        const prompt = `Generate a psychological question for a ${character.age}-year-old with personality: ${character.personality}. The character has the following traits: Happiness ${character.happiness}, Intelligence ${character.intelligence}, Health ${character.health}, Wealth ${character.wealth}.`;
         try {
             const response = await fetch(`${backendUrl}/generate`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    prompt: "Generate a psychological question for a teenager."
-                })
+                body: JSON.stringify({ prompt })
             });
 
             const data = await response.json();
             document.getElementById("chat").innerText = data.response;
         } catch (error) {
-            console.error("Error communicating with backend:", error);
+            console.error("Error:", error);
             document.getElementById("chat").innerText = "Failed to load a question.";
         }
     }
 
-    // Process user's answer
     async function processAnswer(type) {
-        // Define how each type affects the character
-        const feedback = type === 'positive' ? 'optimistic' :
-                         type === 'neutral' ? 'balanced' :
-                         'pessimistic';
+        const effects = {
+            positive: { happiness: 5, intelligence: 3 },
+            neutral: { happiness: 2 },
+            negative: { happiness: -5, health: -5 }
+        };
 
+        for (const key in effects[type]) {
+            character[key] += effects[type][key];
+        }
+
+        updateStats();
+
+        // Send a diary prompt to the AI
+        const diaryPrompt = `Write a diary entry for a character with personality ${character.personality}, who just received ${type} advice. The character's current stats are: Happiness ${character.happiness}, Intelligence ${character.intelligence}, Health ${character.health}, Wealth ${character.wealth}.`;
         try {
             const response = await fetch(`${backendUrl}/generate`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    prompt: `Write a reflective diary entry for a teenager who has received ${feedback} advice.`
-                })
+                body: JSON.stringify({ prompt: diaryPrompt })
             });
 
             const data = await response.json();
             console.log("Diary Entry:", data.response);
+            character.diary.push(data.response);
 
-            // Update chat with the next AI-generated question
+            character.age++;
             askAIQuestion();
         } catch (error) {
-            console.error("Error processing answer:", error);
+            console.error("Error:", error);
         }
     }
 
-    // Automatically load the first question
+    // Initialize the game
+    updateStats();
     askAIQuestion();
 </script>
 </body>
