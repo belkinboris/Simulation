@@ -1,211 +1,169 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Psychology Life Simulator</title>
+    <title>Psychological Life Simulator</title>
     <style>
         body {
+            font-family: Arial, sans-serif;
             margin: 0;
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(to bottom, #e0f2f1, #80cbc4);
+            background: #f0f4f8;
             color: #333;
-            animation: background 20s infinite;
         }
-
-        @keyframes background {
-            0%, 100% { background: linear-gradient(to bottom, #e0f2f1, #80cbc4); }
-            50% { background: linear-gradient(to bottom, #b2dfdb, #4db6ac); }
+        h1 {
+            text-align: center;
+            margin: 10px;
         }
-
-        h1, h2, h3 {
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        #event-popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            width: 80%;
+            max-width: 400px;
+            z-index: 10;
+        }
+        #event-popup h2, #event-popup p {
             text-align: center;
         }
-
-        .page {
-            display: none;
-        }
-
-        .active {
-            display: block;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 20px;
-            background: #fff;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        .chat, .diary {
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            padding: 15px;
-            height: 220px;
-            overflow-y: auto;
-            background: #f9f9f9;
-            margin-bottom: 10px;
-        }
-
-        input, button {
-            margin-top: 10px;
+        #event-popup button {
+            width: 100%;
             padding: 10px;
+            margin-top: 10px;
             border: none;
             border-radius: 5px;
-        }
-
-        button {
-            background-color: #007bff;
+            background: #007bff;
             color: white;
             cursor: pointer;
-            transition: background 0.3s;
         }
-
         button:hover {
-            background-color: #0056b3;
+            background: #0056b3;
         }
-
-        .stats {
-            display: flex;
-            justify-content: space-around;
+        #stats, #relationships {
             margin-top: 20px;
         }
-
-        .stat {
-            text-align: center;
-        }
-
         .stat-bar {
-            width: 100px;
-            height: 15px;
-            background: #ddd;
-            border-radius: 7px;
-            margin: 5px auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
         }
-
-        .stat-fill {
+        .bar {
+            width: 70%;
+            background: #ddd;
+            border-radius: 5px;
+            overflow: hidden;
+            height: 10px;
+        }
+        .bar-fill {
             height: 100%;
-            background-color: #007bff;
-            border-radius: 7px;
+            background: #28a745;
+        }
+        .actions {
+            margin-top: 20px;
+        }
+        .actions button {
+            width: 100%;
+            margin: 5px 0;
+            padding: 10px;
+            border: none;
+            background: #007bff;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
-    <!-- Intro Page -->
-    <div id="intro" class="page active">
-        <div class="container">
-            <h1>Welcome to the Life Simulator</h1>
-            <p>Enter your character's name:</p>
-            <input id="nameInput" placeholder="Your Name" />
-            <button onclick="startGame()">Start Game</button>
+    <h1>Psychological Life Simulator</h1>
+    <div class="container">
+        <div id="stats">
+            <h2>Character Stats</h2>
+            <div class="stat-bar">Happiness 😄 <div class="bar"><div class="bar-fill" id="happiness" style="width: 50%;"></div></div></div>
+            <div class="stat-bar">Health ❤️ <div class="bar"><div class="bar-fill" id="health" style="width: 100%;"></div></div></div>
+            <div class="stat-bar">Intelligence 🧠 <div class="bar"><div class="bar-fill" id="intelligence" style="width: 20%;"></div></div></div>
+            <div class="stat-bar">Wealth 💰 <div class="bar"><div class="bar-fill" id="wealth" style="width: 10%;"></div></div></div>
+        </div>
+        <div id="relationships">
+            <h2>Relationships</h2>
+            <p>Parents ❤️: <span id="parents-relationship">100</span>%</p>
+        </div>
+        <div class="actions">
+            <button onclick="ageUp()">Age Up</button>
         </div>
     </div>
 
-    <!-- Main Game Page -->
-    <div id="main" class="page">
-        <div class="container">
-            <h1 id="mainHeading"></h1>
-            <h3>Life Events</h3>
-            <div class="chat" id="chat">Loading your first life event...</div>
-            <input id="userInput" placeholder="Your Response..." />
-            <button onclick="submitAnswer()">Submit</button>
-            <h3>Diary</h3>
-            <div class="diary" id="diary">Diary entries will appear here...</div>
-            <button onclick="showStats()">View Stats</button>
-        </div>
-    </div>
-
-    <!-- Stats Page -->
-    <div id="stats" class="page">
-        <div class="container">
-            <h2>Your Character Stats</h2>
-            <div class="stats">
-                <div class="stat">
-                    <p>Happiness</p>
-                    <div class="stat-bar"><div id="happiness" class="stat-fill" style="width: 50%;"></div></div>
-                </div>
-                <div class="stat">
-                    <p>Health</p>
-                    <div class="stat-bar"><div id="health" class="stat-fill" style="width: 100%;"></div></div>
-                </div>
-                <div class="stat">
-                    <p>Wealth</p>
-                    <div class="stat-bar"><div id="wealth" class="stat-fill" style="width: 30%;"></div></div>
-                </div>
-            </div>
-            <button onclick="backToMain()">Back to Life</button>
-        </div>
+    <div id="event-popup">
+        <h2 id="event-title"></h2>
+        <p id="event-text"></p>
+        <button onclick="closePopup()">OK</button>
     </div>
 
     <script>
-        const backendUrl = "https://24976535-615c-4c49-8b64-1c3a77c67211-00-1fp62i9n295va.sisko.replit.dev";
-        let character = {
-            name: "",
-            happiness: 50,
-            health: 100,
-            wealth: 30,
-            diary: []
-        };
+        const backendUrl = "YOUR_BACKEND_URL"; // Replace with Replit backend URL
 
-        function startGame() {
-            character.name = document.getElementById("nameInput").value || "John Doe";
-            document.getElementById("mainHeading").innerText = `Welcome, ${character.name}!`;
-            switchPage("intro", "main");
-            fetchEvent();
-        }
-
-        async function fetchEvent() {
-            const prompt = `Generate an engaging and age-appropriate life event for a character named ${character.name} with happiness ${character.happiness}, health ${character.health}, and wealth ${character.wealth}.`;
-            const response = await fetchAI(prompt);
-            document.getElementById("chat").innerText = response;
-        }
-
-        async function submitAnswer() {
-            const answer = document.getElementById("userInput").value;
-            if (!answer) return;
-
-            const diaryPrompt = `Based on the response "${answer}", write a short diary entry reflecting the character's thoughts and emotions.`;
-            const diaryEntry = await fetchAI(diaryPrompt);
-            character.diary.push(diaryEntry);
-
-            document.getElementById("diary").innerText = character.diary.join("\n\n");
-            updateStats();
-            fetchEvent();
-        }
-
-        async function fetchAI(prompt) {
-            const response = await fetch(`${backendUrl}/generate`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ prompt })
-            });
-            const data = await response.json();
-            return data.response;
-        }
-
-        function showStats() {
-            document.getElementById("happiness").style.width = `${character.happiness}%`;
-            document.getElementById("health").style.width = `${character.health}%`;
-            document.getElementById("wealth").style.width = `${character.wealth}%`;
-            switchPage("main", "stats");
-        }
-
-        function backToMain() {
-            switchPage("stats", "main");
-        }
+        let age = 0;
+        let stats = { happiness: 50, health: 100, intelligence: 20, wealth: 10 };
+        let relationships = { parents: 100 };
 
         function updateStats() {
-            character.happiness = Math.max(0, Math.min(100, character.happiness + Math.floor(Math.random() * 10 - 5)));
-            character.health = Math.max(0, Math.min(100, character.health + Math.floor(Math.random() * 10 - 5)));
-            character.wealth = Math.max(0, Math.min(100, character.wealth + Math.floor(Math.random() * 10 - 5)));
+            document.getElementById('happiness').style.width = stats.happiness + '%';
+            document.getElementById('health').style.width = stats.health + '%';
+            document.getElementById('intelligence').style.width = stats.intelligence + '%';
+            document.getElementById('wealth').style.width = stats.wealth + '%';
+            document.getElementById('parents-relationship').innerText = relationships.parents;
         }
 
-        function switchPage(from, to) {
-            document.getElementById(from).classList.remove("active");
-            document.getElementById(to).classList.add("active");
+        function closePopup() {
+            document.getElementById('event-popup').style.display = 'none';
         }
+
+        async function ageUp() {
+            age++;
+            const prompt = `The character is now ${age} years old. Generate a realistic life event description for a ${age}-year-old and its impact on their stats.`;
+            
+            try {
+                const response = await fetch(`${backendUrl}/generate`, {
+                    method: 'POST',
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ prompt })
+                });
+                const data = await response.json();
+
+                showPopup(data.response);
+                // Example: Adjust stats randomly for demo
+                stats.happiness -= Math.random() * 5;
+                stats.health -= Math.random() * 10;
+                stats.intelligence += Math.random() * 5;
+                stats.wealth += Math.random() * 10;
+
+                updateStats();
+            } catch (error) {
+                console.error("Error fetching life event:", error);
+            }
+        }
+
+        function showPopup(eventText) {
+            document.getElementById('event-title').innerText = `Age ${age} Event`;
+            document.getElementById('event-text').innerText = eventText;
+            document.getElementById('event-popup').style.display = 'block';
+        }
+
+        updateStats();
     </script>
 </body>
 </html>
