@@ -6,14 +6,19 @@
     <title>Psychology Life Simulator</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
             margin: 0;
-            padding: 0;
-            background: linear-gradient(to bottom, #f4f4f9, #c4e0e5);
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to bottom, #e0f2f1, #80cbc4);
             color: #333;
+            animation: background 20s infinite;
         }
 
-        h1, h2 {
+        @keyframes background {
+            0%, 100% { background: linear-gradient(to bottom, #e0f2f1, #80cbc4); }
+            50% { background: linear-gradient(to bottom, #b2dfdb, #4db6ac); }
+        }
+
+        h1, h2, h3 {
             text-align: center;
         }
 
@@ -27,47 +32,63 @@
 
         .container {
             max-width: 800px;
-            margin: auto;
+            margin: 20px auto;
             padding: 20px;
-            background: white;
+            background: #fff;
             border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
 
-        .chat, .diary, .traits {
-            margin-top: 20px;
+        .chat, .diary {
             border: 1px solid #ddd;
             border-radius: 10px;
-            padding: 10px;
-            background: #f9f9f9;
-            height: 200px;
+            padding: 15px;
+            height: 220px;
             overflow-y: auto;
+            background: #f9f9f9;
+            margin-bottom: 10px;
         }
 
-        .input-container {
+        input, button {
             margin-top: 10px;
-            display: flex;
-            gap: 10px;
-        }
-
-        input {
-            flex: 1;
             padding: 10px;
-            border: 1px solid #ddd;
+            border: none;
             border-radius: 5px;
         }
 
         button {
-            padding: 10px;
-            border: none;
-            background: #007bff;
+            background-color: #007bff;
             color: white;
-            border-radius: 5px;
             cursor: pointer;
+            transition: background 0.3s;
         }
 
         button:hover {
-            background: #0056b3;
+            background-color: #0056b3;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-bar {
+            width: 100px;
+            height: 15px;
+            background: #ddd;
+            border-radius: 7px;
+            margin: 5px auto;
+        }
+
+        .stat-fill {
+            height: 100%;
+            background-color: #007bff;
+            border-radius: 7px;
         }
     </style>
 </head>
@@ -75,116 +96,116 @@
     <!-- Intro Page -->
     <div id="intro" class="page active">
         <div class="container">
-            <h1>Welcome to the Psychology Life Simulator</h1>
-            <p>Enter the name of your character:</p>
-            <input id="characterName" placeholder="Character Name">
+            <h1>Welcome to the Life Simulator</h1>
+            <p>Enter your character's name:</p>
+            <input id="nameInput" placeholder="Your Name" />
             <button onclick="startGame()">Start Game</button>
         </div>
     </div>
 
-    <!-- Main Page -->
+    <!-- Main Game Page -->
     <div id="main" class="page">
         <div class="container">
-            <h1 id="characterGreeting"></h1>
-            <div class="chat" id="chat">Loading your life events...</div>
-            <div class="input-container">
-                <input id="userInput" placeholder="Type your response...">
-                <button onclick="submitAnswer()">Send</button>
-            </div>
-            <button onclick="showTraits()">View Character Traits</button>
-            <div class="diary" id="diary">Your diary will appear here...</div>
+            <h1 id="mainHeading"></h1>
+            <h3>Life Events</h3>
+            <div class="chat" id="chat">Loading your first life event...</div>
+            <input id="userInput" placeholder="Your Response..." />
+            <button onclick="submitAnswer()">Submit</button>
+            <h3>Diary</h3>
+            <div class="diary" id="diary">Diary entries will appear here...</div>
+            <button onclick="showStats()">View Stats</button>
         </div>
     </div>
 
-    <!-- Character Traits Page -->
-    <div id="traits" class="page">
+    <!-- Stats Page -->
+    <div id="stats" class="page">
         <div class="container">
-            <h1>Character Traits</h1>
-            <div id="traitsList"></div>
-            <button onclick="backToMain()">Return to Main Screen</button>
+            <h2>Your Character Stats</h2>
+            <div class="stats">
+                <div class="stat">
+                    <p>Happiness</p>
+                    <div class="stat-bar"><div id="happiness" class="stat-fill" style="width: 50%;"></div></div>
+                </div>
+                <div class="stat">
+                    <p>Health</p>
+                    <div class="stat-bar"><div id="health" class="stat-fill" style="width: 100%;"></div></div>
+                </div>
+                <div class="stat">
+                    <p>Wealth</p>
+                    <div class="stat-bar"><div id="wealth" class="stat-fill" style="width: 30%;"></div></div>
+                </div>
+            </div>
+            <button onclick="backToMain()">Back to Life</button>
         </div>
     </div>
 
-<script>
-    const backendUrl = "https://24976535-615c-4c49-8b64-1c3a77c67211-00-1fp62i9n295va.sisko.replit.dev";
-
-    let character = {
-        name: "",
-        personality: "",
-        traits: {
+    <script>
+        const backendUrl = "https://24976535-615c-4c49-8b64-1c3a77c67211-00-1fp62i9n295va.sisko.replit.dev";
+        let character = {
+            name: "",
             happiness: 50,
-            empathy: 50,
-            ambition: 50,
-            anger: 10,
-            introversion: 50
-        },
-        diary: []
-    };
+            health: 100,
+            wealth: 30,
+            diary: []
+        };
 
-    const personalities = [
-        "ENFP - Campaigner: Enthusiastic and social.",
-        "INTJ - Architect: Strategic and reserved.",
-        "ISTP - Virtuoso: Independent and practical.",
-        "ISFJ - Defender: Loyal and caring."
-    ];
-
-    function startGame() {
-        character.name = document.getElementById("characterName").value || "John Doe";
-        character.personality = personalities[Math.floor(Math.random() * personalities.length)];
-        document.getElementById("characterGreeting").innerText = `Hello, ${character.name}! (${character.personality})`;
-        document.getElementById("intro").classList.remove("active");
-        document.getElementById("main").classList.add("active");
-        askAIQuestion("Generate the first event in this character's life.");
-    }
-
-    async function askAIQuestion(prompt) {
-        const response = await fetch(`${backendUrl}/generate`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ prompt })
-        });
-        const data = await response.json();
-        document.getElementById("chat").innerText = data.response;
-    }
-
-    async function submitAnswer() {
-        const userResponse = document.getElementById("userInput").value;
-        if (!userResponse) return;
-
-        // Send user input and ask for diary update
-        const diaryPrompt = `Based on the response: "${userResponse}", write a diary entry reflecting the character's life. Traits: Happiness ${character.traits.happiness}, Ambition ${character.traits.ambition}, Anger ${character.traits.anger}.`;
-        const response = await fetch(`${backendUrl}/generate`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ prompt: diaryPrompt })
-        });
-
-        const data = await response.json();
-        character.diary.push(data.response);
-        document.getElementById("diary").innerText = character.diary.join("\n\n");
-        document.getElementById("userInput").value = "";
-
-        // Ask the next question
-        askAIQuestion("Generate the next event or question in the character's life.");
-    }
-
-    function showTraits() {
-        document.getElementById("main").classList.remove("active");
-        document.getElementById("traits").classList.add("active");
-
-        const traits = character.traits;
-        let traitsHtml = "";
-        for (const key in traits) {
-            traitsHtml += `<p>${key.toUpperCase()}: ${traits[key]}</p>`;
+        function startGame() {
+            character.name = document.getElementById("nameInput").value || "John Doe";
+            document.getElementById("mainHeading").innerText = `Welcome, ${character.name}!`;
+            switchPage("intro", "main");
+            fetchEvent();
         }
-        traitsHtml += `<p>Personality: ${character.personality}</p>`;
-        document.getElementById("traitsList").innerHTML = traitsHtml;
-    }
 
-    function backToMain() {
-        document.getElementById("traits").classList.remove("active");
-        document.getElementById("main").classList.add("active");
-    }
-</script>
+        async function fetchEvent() {
+            const prompt = `Generate an engaging and age-appropriate life event for a character named ${character.name} with happiness ${character.happiness}, health ${character.health}, and wealth ${character.wealth}.`;
+            const response = await fetchAI(prompt);
+            document.getElementById("chat").innerText = response;
+        }
+
+        async function submitAnswer() {
+            const answer = document.getElementById("userInput").value;
+            if (!answer) return;
+
+            const diaryPrompt = `Based on the response "${answer}", write a short diary entry reflecting the character's thoughts and emotions.`;
+            const diaryEntry = await fetchAI(diaryPrompt);
+            character.diary.push(diaryEntry);
+
+            document.getElementById("diary").innerText = character.diary.join("\n\n");
+            updateStats();
+            fetchEvent();
+        }
+
+        async function fetchAI(prompt) {
+            const response = await fetch(`${backendUrl}/generate`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ prompt })
+            });
+            const data = await response.json();
+            return data.response;
+        }
+
+        function showStats() {
+            document.getElementById("happiness").style.width = `${character.happiness}%`;
+            document.getElementById("health").style.width = `${character.health}%`;
+            document.getElementById("wealth").style.width = `${character.wealth}%`;
+            switchPage("main", "stats");
+        }
+
+        function backToMain() {
+            switchPage("stats", "main");
+        }
+
+        function updateStats() {
+            character.happiness = Math.max(0, Math.min(100, character.happiness + Math.floor(Math.random() * 10 - 5)));
+            character.health = Math.max(0, Math.min(100, character.health + Math.floor(Math.random() * 10 - 5)));
+            character.wealth = Math.max(0, Math.min(100, character.wealth + Math.floor(Math.random() * 10 - 5)));
+        }
+
+        function switchPage(from, to) {
+            document.getElementById(from).classList.remove("active");
+            document.getElementById(to).classList.add("active");
+        }
+    </script>
 </body>
 </html>
